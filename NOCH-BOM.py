@@ -8,7 +8,7 @@ update date 04.05.2025
 
 """
 
-ver = 1.2
+ver = 1.3
 BLUE_COLOR = "\033[1;34;40m"
 PURPLE_COLOR = "\033[1;35;40m"
 YELLOW_COLOR = "\033[1;33;40m"
@@ -26,6 +26,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 import time
+import numpy
 
 
 
@@ -41,7 +42,6 @@ def select_file():
     file_path = filedialog.askopenfilename(title="Select a file")
     directory_path = os.path.dirname(file_path)
 
-    # Now, you can use the file_path variable for your purposes
     if file_path:
         print(f"Selected file: {file_path}")
         return file_path , directory_path
@@ -49,20 +49,19 @@ def select_file():
         print("No file selected")
         exit(1)
 
-# Load the CSV file
+
 
 
 def main():
+    # Load the CSV file
     file_path , directory_path = select_file()
     #file_path,  = 'BOM1.csv'  # original file
     df = pd.read_csv(file_path)
 
     # Initialize a list to keep track of relevant row indices
     relevant_indices = []
-    # init indication for empty line
-    empty_line_exist = False
 
-    ## delete alll lines that do not have item number and chain in COT
+    ## delete all lines that do not have item number and chain in COT
     for i in range(len(df) - 1, -1, -1):
         if pd.isna(df.at[i, 'Item Number']) and 'China' in str(df.at[i, 'Country of Origin (MP)']):
             # df.loc[i, 'Item Description':'Reference Notes'] = pd.NA
@@ -88,11 +87,11 @@ def main():
                 #df.at[j, 'Item Number'] = last_item_number  # Assign the updated Item Number to empty cells
                 j += 1
                 empty_line_exist = True
-            if empty_line_exist == False:
+            if not empty_line_exist:
                 relevant_indices.pop()
 
 
-    #  make a list of the indices to be updated without modifying the DataFrame 
+    #  make a list of the indices to be updated without modifying the DataFrame
     rows_to_update = []
 
     for idx in relevant_indices:
@@ -103,7 +102,7 @@ def main():
             # Save the rows that need to be copied
             rows_to_update.append(idx)
 
-    # update the rows outside of the loop to avoid shifting
+    # update the rows outside the loop to avoid shifting
     for idx in rows_to_update:
         # Copy the values from the next row to the current row (above)
         df.loc[idx, 'Manufacture Part Has Redline':'Reference Notes'] = df.loc[idx + 1,
@@ -128,5 +127,5 @@ def main():
 
 if __name__ == '__main__':
 
-    print(YELLOW_COLOR + f" Made In China BOM Conversion Utility Ver:{ver}" + RESET_STYLE )
+    print(YELLOW_COLOR + f"Made In China BOM Conversion Utility Ver:{ver}" + RESET_STYLE )
     main()
