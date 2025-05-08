@@ -72,6 +72,7 @@ class BOMConverterApp:
                     empty_line_exist = True
                 if not empty_line_exist:
                     relevant_indices.pop()
+        print(relevant_indices)
 
 
 
