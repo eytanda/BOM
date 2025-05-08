@@ -6,7 +6,7 @@ Update by: Eytan Dagry
 update date 04.05.2025
 """
 
-ver = 1.41
+ver = 1.42
 
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
@@ -57,11 +57,6 @@ class BOMConverterApp:
         relevant_sub_indices = []
         relevant_main_line_indices = []
 
-        # # Clean up lines without Item Number but with 'China' in Origin
-        # for i in range(len(df) - 1, -1, -1):  # start from the end to the start to overcome delete line issue
-        #     if pd.isna(df.at[i, 'Item Number']) and 'China' in str(df.at[i, 'Country of Origin (MP)']):
-        #         df.drop(i, inplace=True)
-        #     df.reset_index(drop=True, inplace=True)
 
         # Identify relevant indices of lines with suns that includes Made in chain in the main or in the suns
         for i in range(len(df)):
@@ -109,7 +104,10 @@ class BOMConverterApp:
         # update the main lines (relevant_main_line_indices)  with -NCN
         for idx in relevant_main_line_indices:
             #if pd.notna(df.at[int(idx), 'Item Number']):
-             df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN'
+            if len(df.at[int(idx), 'Item Number']) > 18:
+                df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN-LONG'
+            else:
+                df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN'
 
         # Clean up lines without Item Number but with 'China' in relevant_sub_indices
         for idx in sorted(relevant_sub_indices, reverse=True):
@@ -117,21 +115,22 @@ class BOMConverterApp:
             print(df.loc[idx])
             if pd.isna(df.at[idx, 'Item Number']) and 'China' in str(df.at[idx, 'Country of Origin (MP)']):
                 df.drop(idx, inplace=True)
+        df = df.reset_index(drop=True)
 
-        # In case that main line with mad in china, delete the cell and use the cell below.
-        #for idx in relevant_indices:
-        #     if pd.notna(df.at[int(idx), 'Item Number']):
-        #         df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN'
-        #     if 'China' in str(df.at[idx, 'Country of Origin (MP)']):
-        #         rows_to_update.append(idx)
-        #
-        # # Update rows
-        # for idx in rows_to_update:
-        #     df.loc[idx, 'Manufacture Part Has Redline':'Reference Notes'] = df.loc[idx + 1, 'Manufacture Part Has Redline':'Reference Notes']
-        #     df.loc[idx + 1, 'Manufacture Part Has Redline':'Reference Notes'] = pd.NA
-        #
-        # # Remove fully empty rows
-        # df = df.dropna(how='all')
+        # Check if main line includes China and copy info from bottom line
+        for idx in range(len(df)):
+            if '-NCN' in str(df.at[idx, 'Item Number']) and 'China' in str(df.at[idx, 'Country of Origin (MP)']):
+                df.loc[idx, 'Manufacture Part Has Redline':'Reference Notes'] = df.loc[idx + 1,
+                                                                                'Manufacture Part Has Redline':'Reference Notes']
+                df.loc[idx + 1, 'Manufacture Part Has Redline':'Reference Notes'] = pd.NA
+                #
+        # Remove fully empty rows
+        df = df.dropna(how='all')
+
+
+
+
+
 
         # Save the file
         x = len(directory_path)
