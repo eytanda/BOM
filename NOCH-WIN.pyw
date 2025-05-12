@@ -6,7 +6,7 @@ Update by: Eytan Dagry
 update date 04.05.2025
 """
 
-ver = 1.42
+ver = 1.5
 
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
@@ -58,44 +58,65 @@ class BOMConverterApp:
         relevant_main_line_indices = []
 
 
-        # Identify relevant indices of lines with suns that includes Made in chain in the main or in the suns
+        # Identify relevant indices of lines with sons that includes Made in chain in the main or in the sons
         for i in range(len(df)):
-
-
+            if i == 643:
+                print("0" , 643)
+                print(str(df.at[i, 'Country of Origin (MP)']))
+            empty_line_exist = False
+            num_of_empty_lines = 0
+            num_with_no_china = 0
+            num_with_china = 0
             at_list_one_china = False
             if pd.notna(df.at[i, 'Item Number']):
                 if 'China' in str(df.at[i, 'Country of Origin (MP)']):
                     at_list_one_china = True
                 relevant_main_line_indices.append(i)
-                print("relevant_main_line_indices=", relevant_main_line_indices)
+                #print("relevant_main_line_indices=", relevant_main_line_indices)
                 j = i + 1
-                empty_line_exist = False
-                num_of_empty_lines = 0
-                num_with_no_china = 0
+                # empty_line_exist = False
+                # num_of_empty_lines = 0
+                # num_with_no_china = 0
+                # num_with_china = 0
 
                 while j < (len(df)) and pd.isna(df.at[j, 'Item Number']):
                     relevant_sub_indices.append(j)
                     empty_line_exist = True
                     num_of_empty_lines += 1
-                    print("empty_line_exist=", empty_line_exist, j)
+                    #print("empty_line_exist=", empty_line_exist, j)
 
 
                     if 'China' not in str(df.at[j, 'Country of Origin (MP)']):
                         num_with_no_china += 1
-                        print("num_with_no_china =", num_with_no_china)
+                        #print("num_with_no_china =", num_with_no_china)
                     else:
                         at_list_one_china = True
+                        num_with_china += 1
+                        #print("num_with_china =", num_with_china)
                     j += 1
+
+
                 if not empty_line_exist:
                     relevant_main_line_indices.pop()
-                if not at_list_one_china:
-                    print("num_of_empty_lines=", num_of_empty_lines)
-                    if len(relevant_main_line_indices) >= 1:
+
+                elif not at_list_one_china:
+                    #print("num_of_empty_lines=", num_of_empty_lines)
+                    if len(relevant_main_line_indices) > 1:
                         relevant_main_line_indices.pop()
+                        if i == 643:
+                            print("3", 643)
                     for empty_line in range (num_of_empty_lines):
-                        print("before_pop_relevant_sub_indices=", relevant_sub_indices)
+                        #print("before_pop_relevant_sub_indices=", relevant_sub_indices)
                         relevant_sub_indices.pop()
-                        print("after_pop_relevant_sub_indices=", relevant_sub_indices)
+                        #print("after_pop_relevant_sub_indices=", relevant_sub_indices)
+
+                # check if main and sons are all with Made in China
+                elif num_with_china == num_of_empty_lines and 'China' in str(df.at[i, 'Country of Origin (MP)']):
+
+                    relevant_main_line_indices.pop()
+                    for p in range (num_with_china):
+                        relevant_sub_indices.pop()
+
         print("****************************************************")
         print("relevant_sub_indices=", relevant_sub_indices)
         print("relevant_main_line_indices=", relevant_main_line_indices )
@@ -104,21 +125,23 @@ class BOMConverterApp:
         # update the main lines (relevant_main_line_indices)  with -NCN
         for idx in relevant_main_line_indices:
             #if pd.notna(df.at[int(idx), 'Item Number']):
+            print(idx)
             if len(df.at[int(idx), 'Item Number']) > 18:
+
                 df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN-LONG'
             else:
                 df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN'
 
         # Clean up lines without Item Number but with 'China' in relevant_sub_indices
         for idx in sorted(relevant_sub_indices, reverse=True):
-            print(idx)
-            print(df.loc[idx])
+            #print(idx)
+            #print(df.loc[idx])
             if pd.isna(df.at[idx, 'Item Number']) and 'China' in str(df.at[idx, 'Country of Origin (MP)']):
                 df.drop(idx, inplace=True)
         df = df.reset_index(drop=True)
 
         # Check if main line includes China and copy info from bottom line
-        for idx in range(len(df)):
+        for idx in range(len(df)-1):
             if '-NCN' in str(df.at[idx, 'Item Number']) and 'China' in str(df.at[idx, 'Country of Origin (MP)']):
                 df.loc[idx, 'Manufacture Part Has Redline':'Reference Notes'] = df.loc[idx + 1,
                                                                                 'Manufacture Part Has Redline':'Reference Notes']
