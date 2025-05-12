@@ -11,6 +11,7 @@ ver = 1.6
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
 import os
+from itertools import compress
 
 
 
@@ -68,7 +69,7 @@ class BOMConverterApp:
                 if 'China' in str(df.at[i, 'Country of Origin (MP)']):
                     at_list_one_china = True
                 relevant_main_line_indices.append(i)
-
+                j = i + 1
 
                 while j < (len(df)) and pd.isna(df.at[j, 'Item Number']):
                     relevant_sub_indices.append(j)
@@ -78,6 +79,7 @@ class BOMConverterApp:
 
                     if 'China' not in str(df.at[j, 'Country of Origin (MP)']):
                         num_with_no_china += 1
+                        #print("num_with_no_china =", num_with_no_china)
                     else:
                         at_list_one_china = True
                         num_with_china += 1
@@ -102,14 +104,13 @@ class BOMConverterApp:
                     for p in range (num_with_china):
                         relevant_sub_indices.pop()
 
-        print("****************************************************")
-        print("relevant_sub_indices=", relevant_sub_indices)
-        print("relevant_main_line_indices=", relevant_main_line_indices )
+        #print("****************************************************")
+        #print("relevant_sub_indices=", relevant_sub_indices)
+        #print("relevant_main_line_indices=", relevant_main_line_indices )
 
 
         # update the main lines (relevant_main_line_indices)  with -NCN
         for idx in relevant_main_line_indices:
-
             if len(df.at[int(idx), 'Item Number']) > 18:
 
                 df.at[int(idx), 'Item Number'] = df.at[int(idx), 'Item Number'] + '-NCN-LONG'
@@ -118,7 +119,6 @@ class BOMConverterApp:
 
         # Clean up lines without Item Number but with 'China' in relevant_sub_indices
         for idx in sorted(relevant_sub_indices, reverse=True):
-
             if pd.isna(df.at[idx, 'Item Number']) and 'China' in str(df.at[idx, 'Country of Origin (MP)']):
                 df.drop(idx, inplace=True)
         df = df.reset_index(drop=True)
@@ -129,7 +129,7 @@ class BOMConverterApp:
                 df.loc[idx, 'Manufacture Part Has Redline':'Reference Notes'] = df.loc[idx + 1,
                                                                                 'Manufacture Part Has Redline':'Reference Notes']
                 df.loc[idx + 1, 'Manufacture Part Has Redline':'Reference Notes'] = pd.NA
-
+                #
         # Remove fully empty rows
         df = df.dropna(how='all')
 
