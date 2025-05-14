@@ -6,7 +6,7 @@ Update by: Eytan Dagry
 update date 04.05.2025
 """
 
-ver = 1.7
+ver = 1.71
 
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
@@ -96,7 +96,7 @@ class BOMConverterApp:
 
 
                 elif not at_list_one_china:
-                    if len(relevant_main_line_indices) > 1:
+                    if len(relevant_main_line_indices) >= 1:
                         relevant_main_line_indices.pop()
 
                     for empty_line in range (num_of_empty_lines):
