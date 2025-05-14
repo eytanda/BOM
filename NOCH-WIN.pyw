@@ -6,12 +6,11 @@ Update by: Eytan Dagry
 update date 04.05.2025
 """
 
-ver = 1.6
+ver = 1.7
 
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
 import os
-from itertools import compress
 
 
 
@@ -56,14 +55,16 @@ class BOMConverterApp:
         df = pd.read_csv(file_path)
         relevant_sub_indices = []
         relevant_main_line_indices = []
+        single_line_china = 0
 
-
+        sons_and_main_with_china = 0
         # Identify relevant indices of lines with sons that includes Made in chain in the main or in the sons
         for i in range(len(df)):
             empty_line_exist = False
             num_of_empty_lines = 0
             num_with_no_china = 0
             num_with_china = 0
+
             at_list_one_china = False
             if pd.notna(df.at[i, 'Item Number']):
                 if 'China' in str(df.at[i, 'Country of Origin (MP)']):
@@ -87,19 +88,24 @@ class BOMConverterApp:
 
 
                 if not empty_line_exist:
+                #print(i)
+                    if at_list_one_china: single_line_china += 1
                     relevant_main_line_indices.pop()
+
+
+
 
                 elif not at_list_one_china:
                     if len(relevant_main_line_indices) > 1:
                         relevant_main_line_indices.pop()
-                        if i == 643:
-                            print("3", 643)
+
                     for empty_line in range (num_of_empty_lines):
                         relevant_sub_indices.pop()
 
                 # check if main and sons are all with Made in China
                 elif num_with_china == num_of_empty_lines and 'China' in str(df.at[i, 'Country of Origin (MP)']):
-
+                    sons_and_main_with_china += 1
+                    #print(sons_and_main_with_china)
                     relevant_main_line_indices.pop()
                     for p in range (num_with_china):
                         relevant_sub_indices.pop()
@@ -107,6 +113,12 @@ class BOMConverterApp:
         #print("****************************************************")
         #print("relevant_sub_indices=", relevant_sub_indices)
         #print("relevant_main_line_indices=", relevant_main_line_indices )
+        self.log(f"Number of PN that were modified: {len(relevant_main_line_indices)}", "magenta")
+        self.log(f"Number of sons' lines (with China) that were deleted: {len(relevant_sub_indices)}", "magenta")
+        self.log(f"Number of main line and sons lines that are all with China: {sons_and_main_with_china}", "red")
+        self.log(f"Number of main line (single with no sons) with China: {single_line_china}", "red")
+
+
 
 
         # update the main lines (relevant_main_line_indices)  with -NCN
