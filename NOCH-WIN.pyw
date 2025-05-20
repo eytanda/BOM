@@ -6,7 +6,7 @@ Update by: Eytan Dagry
 update date 04.05.2025
 """
 
-ver = 1.71
+ver = 1.72
 
 import tkinter as tk
 from tkinter import filedialog, scrolledtext
@@ -114,9 +114,9 @@ class BOMConverterApp:
         #print("relevant_sub_indices=", relevant_sub_indices)
         #print("relevant_main_line_indices=", relevant_main_line_indices )
         self.log(f"Number of PN that were modified: {len(relevant_main_line_indices)}", "magenta")
-        self.log(f"Number of sons' lines (with China) that were deleted: {len(relevant_sub_indices)}", "magenta")
-        self.log(f"Number of main line and sons lines that are all with China: {sons_and_main_with_china}", "red")
-        self.log(f"Number of main line (single with no sons) with China: {single_line_china}", "red")
+        self.log(f"Number of sons' lines (with made in China) that were deleted: {len(relevant_sub_indices)}", "magenta")
+        self.log(f"Number of main line and sons lines that are all with Made in China: {sons_and_main_with_china}", "red")
+        self.log(f"Number of main line (single with no sons) with Made in China: {single_line_china}", "red")
 
 
 
